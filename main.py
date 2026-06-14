@@ -14,6 +14,7 @@ import pandas as pd  # スプレッドシート一括書き込み用に強く推
 import gspread
 from google import genai
 from google.genai import types
+from google.auth import default
 from google.oauth2.service_account import Credentials
 
 # =========================================================================
