@@ -270,30 +270,33 @@ def clean_to_float(val_str: str) -> float:
 # 📊 【Google Sheets書き込みエンジン】
 # =========================================================================
 def get_or_create_sheet(spreadsheet_id: str, sheet_name: str = "FinancialData"):
-    """
-    指定スプレッドシートのシートを取得。なければ新規作成してヘッダーを挿入。
-    """
-    creds, _ = default()
-    gc       = gspread.authorize(creds)
+
+    # ★ GitHub Secretsから環境変数としてJSONを取得
+    service_account_json = os.environ.get("GCP_SERVICE_ACCOUNT_KEY")
+    if not service_account_json:
+        raise Exception("環境変数 GCP_SERVICE_ACCOUNT_KEY が設定されていません。")
+
+    service_account_info = json.loads(service_account_json)
+
+    creds = Credentials.from_service_account_info(
+        service_account_info,
+        scopes=[
+            'https://spreadsheets.google.com/feeds',
+            'https://www.googleapis.com/auth/drive'
+        ]
+    )
+    gc = gspread.authorize(creds)
 
     spreadsheet = gc.open_by_key(spreadsheet_id)
 
-    # シートが存在するか確認
     try:
         sheet = spreadsheet.worksheet(sheet_name)
     except gspread.exceptions.WorksheetNotFound:
         sheet = spreadsheet.add_worksheet(title=sheet_name, rows=1000, cols=10)
-        # ★ ヘッダーを1行目に挿入
         sheet.append_row([
-            "Date",
-            "Fund",
-            "Dry_Powder_M",
-            "Total_AUM_M",
-            "Inflow_M",
-            "Outflow_M",
-            "DP_AUM_Ratio_Pct",
-            "InOut_Ratio",
-            "Source_URL"
+            "Date", "Fund", "Dry_Powder_M", "Total_AUM_M",
+            "Inflow_M", "Outflow_M", "DP_AUM_Ratio_Pct",
+            "InOut_Ratio", "Source_URL"
         ])
         print(f"  [Sheets] シート '{sheet_name}' を新規作成しました。")
 
