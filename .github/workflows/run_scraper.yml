@@ -5,7 +5,6 @@ on:
     - cron: '0 12 * * 5' # 毎週金曜日の日本時間21:00
   workflow_dispatch: # 手動実行ボタン
 
-# 🚀 2026年6月のNode.js 24強制移行に対応するためのグローバル環境変数
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
 
@@ -16,13 +15,15 @@ jobs:
     steps:
     # 1. コードのチェックアウト
     - name: Checkout repository code
-      uses: actions/checkout@v4 # もし今後@v5等が出れば自動でNode24対応になります
+      uses: actions/checkout@v4
 
-    # 2. Python環境のセットアップ
+    # 2. Python環境のセットアップ（バージョンを指定して2つ目の警告を消去）
     - name: Set up Python
       uses: actions/setup-python@v5
+      with:
+        python-version: '3.10' # 👈 ここを追加しました
 
-    # 3. 必要な外部ライブラリの一括インストール（beautifulsoup4、google-genaiを追加）
+    # 3. 必要な外部ライブラリの一括インストール
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -32,6 +33,6 @@ jobs:
     - name: Run Scraper Script
       env:
         GCP_SERVICE_ACCOUNT_KEY: ${{ secrets.GCP_SERVICE_ACCOUNT_KEY }}
-        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }} # 👈 Geminiの鍵もここでLinuxに渡します
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
       run: |
         python main.py
